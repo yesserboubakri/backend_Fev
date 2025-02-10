@@ -3,13 +3,14 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+require ("dotenv").config();
 const {connectToMongodb} = require ("./config/db.js")
 
 const http = require('http');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+
+var usersRouter = require('./routes/usersRouter.js');
+var osRouter = require('./routes/osRouter.js');
 
 var app = express();//instance avec l'express
 
@@ -20,8 +21,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+
 app.use('/users', usersRouter);
+app.use('/os', osRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -40,10 +42,7 @@ app.use(function(err, req, res, next) {
 });
 
 const server = http.createServer(app);
-server.listen(5000,() =>{
-
+server.listen(process.env.port,() =>{
+  connectToMongodb()
   console.log('app is running on port 5000')
 });
-
-
-
