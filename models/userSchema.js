@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const userSchema = new mongoose.Schema({
-    username: string,
-    email: { type: string, required: true, unique: true },
+    username: String,
+    email: { type: String, required: true, unique: true },
     password: {
-        type: string, 
+        type: String, 
         required: true,
          minLength: 8,
           match: [
@@ -14,10 +14,10 @@ const userSchema = new mongoose.Schema({
         ]
     },
     role: {
-        type: string,
+        type: String,
         enum: ["admin", "client", "infi"]
     },
-    user_image: { type: string, require: false, default: "client.png" },
+    user_image: { type: String, require: false, default: "client.png" },
     //etat : Boolean
     count : Number,
 }, 
@@ -44,5 +44,8 @@ userSchema.post("save", async function (req,res,next) {
     console.log("new user was created and saved successfully");
     next();
 })
-const user = mongosse.model("user",userSchema);
+const user = mongoose.model("user", userSchema);
+
+
+
 module.exports = user; 

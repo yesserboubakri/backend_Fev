@@ -3,9 +3,9 @@ var router = express.Router();
 const userController = require('../controllers/userController')
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  
-  res.json('respond with a resource');
-});
+router.post('/addUserClient', userController.addUserClient);
+router.post('/addUserAdmin', userController.addUserAdmin);
+router.get('/getAllUsers', userController.getAllUsers);
+router.get('/getUserById/:id', userController.getUserById);
 
 module.exports = router;
