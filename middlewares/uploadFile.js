@@ -7,7 +7,7 @@ var storage = multer.diskStorage({
     destination: function (req, file, cb) {
         
         const uploadPath = 'C:/Users/Lenovo/Desktop/backendFev/public/files';
-        // existance de fs 
+        
         if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
         }
@@ -22,7 +22,7 @@ var storage = multer.diskStorage({
         let fileName = originalName;
         let fileIndex = 1;
 
-        // Check if the file already exists and append a number if it does
+        
         while (fs.existsSync(path.join(uploadPath, fileName))) {
             fileName = `${baseName}_${fileIndex}${fileExtension}`;
             fileIndex++;
@@ -33,6 +33,6 @@ var storage = multer.diskStorage({
 });
 
 
-const uploadFile = multer({ storage: storage });// insialisation du multer avec le storage configuration 
+const uploadFile = multer({ storage: storage });
 
 module.exports = uploadFile;

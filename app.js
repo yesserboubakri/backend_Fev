@@ -11,7 +11,7 @@ const http = require('http');
 
 var usersRouter = require('./routes/usersRouter.js');
 var osRouter = require('./routes/osRouter.js');
-
+var carRouter = require('./routes/carRouter.js');
 var app = express();//instance avec l'express
 
 
@@ -24,6 +24,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/users', usersRouter);
 app.use('/os', osRouter);
+app.use('/car', carRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
