@@ -14,6 +14,8 @@ router.get('/getAllClient', userController.getAllClient);
 router.get('/getAllUsersSortAge/:age', userController.getAllUsersAge);
 router.get('/getAllUsersAgeBetMaxAgeMinage', userController.getAllUsersAgeBetMaxAgeMinage);
 router.put('/updateUserById/:id', userController.updateUserById);
+router.delete('/deleteUserById/:id', userController.deleteUserById);
+
 router.post('/addUserClientWithImg',upload.single("user_image"), userController.addUserClientWithImg);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 
 const user = require('../models/userSchema');
 const userMdel = require('../models/userSchema');
+const carModel = require('../models/carSchema');
 
 module.exports.addUserClient = async (req, res) => {
     try {
@@ -67,6 +68,11 @@ module.exports.deleteUserById = async (req, res) => {
         if (!chekIfUserExists) {
             throw new Error("User not found")
         }
+        
+        await carModel.updateMany({owner : id},{
+            $unset: {owner : 1  },
+        })
+
         await userMdel.findByIdAndDelete(id);
         res.status(200).json("delete");
     } catch (error) {
@@ -77,14 +83,22 @@ module.exports.updateUserById = async (req, res) => {
     try {
         const { id } = req.params;
         const { email, username } = req.body;
-        await userMdel.findByIdAndUpdate(id, { $set: { email, username } })
-        const update = await userMdel
+
+        const update = await userMdel.findByIdAndUpdate(
+            id,
+            { $set: { email, username } },
+            { new: true } 
+        );
+
+        if (!update) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
         res.status(200).json(update);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}
-
+};
 module.exports.searchUserByUsername = async (req, res) => {
     try {
          const {username} = req.query

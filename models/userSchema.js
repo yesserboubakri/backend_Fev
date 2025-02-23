@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const car = require("./carSchema");
 const userSchema = new mongoose.Schema(
     {
         username: String,
@@ -26,7 +27,9 @@ const userSchema = new mongoose.Schema(
         },
         user_image: { type: String, require: false, default: "client.png" },
         age : {type : Number},
-        count: {type : Number,default:'0'}
+        count: {type : Number,default:'0'},
+        cars :[{type :mongoose.Schema.Types.ObjectId,ref:'Car'}] // one to many
+        //car :[{type :mongoose.Schema.Types.ObjectId,ref:'Car'}]  one to  one
     },
     { timestamps: true }
 );
@@ -51,8 +54,8 @@ userSchema.post("save", async function (req, res, next) {
     console.log("new user was created and saved successfully");
     next();
 })
-const user = mongoose.model("user", userSchema);
+const User = mongoose.model("User", userSchema);
 
 
 
-module.exports = user; 
+module.exports = User; 
