@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session'); //  Add session
 require('dotenv').config();
+const cors = require("cors");
 const { connectToMongodb } = require('./config/db.js');
 const http = require('http');
 
@@ -22,16 +23,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(cors({
+    origin:"http://localhost:3000",
+    methods:"GET,POST,PUT,Delete",
+  }))
+  
 // Add session middleware BEFORE the routes
-app.use(
-    session({
-        secret: 'your_secret_key', // Change this secret for production
-        resave: false,
-        saveUninitialized: true,
-        cookie: { secure: false, httpOnly: true },
-    })
-);
+app.use(session({   //cobfig session
+    secret: "net secret pfe",
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      secure: {secure: false},
+      maxAge: 24*60*60,
+    },  
+  }))
 
 // Routes
 app.use('/users', usersRouter);
