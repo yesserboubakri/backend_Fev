@@ -14,6 +14,9 @@ var usersRouter = require('./routes/usersRouter.js');
 var osRouter = require('./routes/osRouter.js');
 var carRouter = require('./routes/carRouter.js');
 var GeminiRouter = require('./routes/GeminiRouter.js');
+var CommentRouter = require('./routes/CommentRouter.js');
+var paymentRouter = require('./routes/paymentRouter.js');
+var messagesRouter=require('./routes/messagesRouter.js')
 
 var app = express(); // Instance with express
 
@@ -43,7 +46,14 @@ app.use(session({   //cobfig session
 app.use('/users', usersRouter);
 app.use('/os', osRouter);
 app.use('/car', carRouter);
-app.use('/Gemini', GeminiRouter);
+app.use('/payment', paymentRouter);
+app.use('/Comments', CommentRouter);
+
+
+app.use('/messages', messagesRouter);
+
+
+app.use('/uploads', express.static('uploads'));
 
 // 404 handler
 app.use(function (req, res, next) {
@@ -56,6 +66,8 @@ app.use(function (err, req, res, next) {
     res.locals.error = req.app.get('env') === 'development' ? err : {};
     res.status(err.status || 500);
     res.json({ message: err.message, error: err.stack });
+    
+
 });
 
 // Server setup
@@ -66,3 +78,8 @@ server.listen(PORT, () => {
     connectToMongodb();
     console.log("app is running on port 5000");
 });
+app.use(cors({
+  origin: "http://localhost:3000",
+  methods: "GET,POST,PUT,DELETE",
+  credentials: true
+}));

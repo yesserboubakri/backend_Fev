@@ -4,8 +4,9 @@ const userSchema = new mongoose.Schema(
   {
     username: {
       type: String,
-      required: true,
-      unique: true,
+    },
+    phone: {
+      type: String,
     },
     email: {
       type: String,
@@ -18,39 +19,42 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       minLength: 8,
-      match: [
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-        "Le mot de passe doit contenir au moins 8 caractères, une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial.",
-      ],
     },
     role: {
       type: String,
-      enum: ["admin", "client", "infi"],
+      enum: ["admin", "client"],
+      default: "client"
     },
     user_image: { type: String, require: false, default: "client.png" },
     age: { type: Number },
     count: { type: Number, default: "0" },
-    cars: [{ type: mongoose.Schema.Types.ObjectId, ref: "Car" }], //one to many
-    pay: { type: mongoose.Schema.Types.ObjectId, ref: "Pay" }, //one to one
+    cars: [{ type: mongoose.Schema.Types.ObjectId, ref: "Car" }],
+    payments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Payment' }],
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comments' }],
     etat: Boolean,
     ban: Boolean,
   },
   { timestamps: true }
 );
-
 userSchema.pre("save", async function (next) {
   try {
     const salt = await bcrypt.genSalt();
     const user = this;
+
     user.password = await bcrypt.hash(user.password, salt);
-    user.etat = false;
-    user.ban = true;
-    user.count = user.count + 1;
+
+    if (user.isNew) {
+      user.etat = false;
+      user.ban = true;
+      user.count = 1; 
+    }
+
     next();
   } catch (error) {
     next(error);
   }
 });
+
 
 userSchema.post("save", async function (req, res, next) {
   console.log("new user was created & saved successfully");

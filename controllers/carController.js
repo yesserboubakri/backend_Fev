@@ -1,142 +1,177 @@
 const carModel = require('../models/carSchema');
-const userMdel = require('../models/userSchema');
-module.exports.getAllCars = async (req,res)=>{
-        try {
-            const carList = await carModel.find();
-            if (!carList || carList.length ===0 ){
-                throw new Error("Aucune voiture trouvé")
-            }
+const userModel = require('../models/userSchema');
 
-            res.status(200).json(carList);
-        } catch (error) {
-            res.status(500).json({message : error.message});
-        }
-}
-module.exports.getCarById = async (req,res)=>{
-    try {
-        const { id } = req.params
-        const car = await carModel.findById(id);
-        if (!car || car.length ===0 ){
-            throw new Error(" voiture introuvable")
-        }
-
-        res.status(200).json(car);
-    } catch (error) {
-        res.status(500).json({message : error.message});
+module.exports.getAllCars = async (req, res) => {
+  try {
+    const carList = await carModel.find();
+    if (!carList || carList.length === 0) {
+      throw new Error("Aucune voiture trouvée");
     }
-}
-module.exports.deleteCarById = async (req,res)=>{
-    try {
-        const { id } = req.params
+    res.status(200).json(carList);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
-        const carById = await carModel.findById(id);
-
-        if (!carById || carById.length ===0 ){
-            throw new Error(" voiture introuvable ")
-        }
-        
-
-        await userMdel.updateMany({}, {
-            $pull:{cars : id},
-        }
-        
-        )
-        await carModel.findByIdAndDelete(id)
-        
-        res.status(200).json("deleted");
-    } catch (error) {
-        res.status(500).json({message : error.message});
+module.exports.getCarById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const car = await carModel.findById(id);
+    if (!car) {
+      throw new Error("Voiture introuvable");
     }
-}
-module.exports.AddCar = async (req,res)=>{
-    try {
-        const { model , prix , matricule, kilométrage } = req.body;
+    res.status(200).json(car);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
-        if (!model & prix & !matricule & !kilométrage ){
-            throw new Error("erreur data ")
-        }
-        const car = await carModel.create
-        ({ model,prix,matricule,kilométrage});
-        
-        res.status(200).json(car);
-    } catch (error) {
-        res.status(500).json({message : error.message});
+module.exports.deleteCarById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const carById = await carModel.findById(id);
+    if (!carById) {
+      throw new Error("Voiture introuvable");
     }
-}
 
-module.exports.UpdateCar = async (req,res)=>{
-    try {
-        const id  = req.params.id
-        const { model , prix , matricule, kilométrage } = req.body;
+    await userModel.updateMany({}, {
+      $pull: { cars: id },
+    });
 
-        const carById = await carModel.findById(id);
+    await carModel.findByIdAndDelete(id);
 
-        if ( !carById ){
-            throw new Error(" voiture introuvable")
-        }
-        if (!model & prix & !matricule & !kilométrage ){
-            throw new Error("erreur data ")
-        }
+    res.status(200).json("deleted");
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
-        const updated = await carModel.findByIdAndUpdate(id,{
-            $set: {model,prix,matricule,kilométrage},
-    })
-        
-        res.status(200).json(updated);
-    } catch (error) {
-        res.status(500).json({message : error.message});
+module.exports.AddCar = async (req, res) => {
+  try {
+    const {
+      model,
+      prix,
+      description,
+      kilometrage,
+      fuel,
+      Annee,
+      boite,
+      etat,
+      userId,
+    } = req.body;
+
+    const files = req.files;
+
+    if (!model || !prix || !description || !kilometrage || !fuel || !Annee || !boite || !etat || !userId) {
+      return res.status(400).json({ message: "Données du formulaire manquantes." });
     }
-}
-module.exports.affect = async (req,res)=>{
-    try {
-        const {userId,carId }  = req.body;
 
-        const carById = await carModel.findById(carId);
-        if ( !carById ){
-            throw new Error(" voiture introuvable")
-        }
-
-        const chekIfUserExists = await userMdel.findById(userId);
-        if (!chekIfUserExists) {
-            throw new Error("Utilisateur introuvable")
-        }
-
-            await carModel.findByIdAndUpdate(carId,{
-            $set: {owner : userId},})
-
-            await userMdel.findByIdAndUpdate(userId,{
-                $push: {cars : carId},
-    })
-      
-        res.status(200).json('affected');
-    } catch (error) {
-        res.status(500).json({message : error.message});
+    if (!files || files.length === 0) {
+      return res.status(400).json({ message: "Aucune image reçue." });
     }
-}
-module.exports.desaffect = async (req,res)=>{
-    try {
-        const {userId,carId  }  = req.body;
 
-        const carById = await carModel.findById(carId);
-        if ( !carById ){
-            throw new Error(" voiture introuvable")
-        }
+    const imageNames = files.map(file => file.filename);
 
-        const chekIfUserExists = await userMdel.findById(userId);
-        if (!chekIfUserExists) {
-            throw new Error("Utilisateur introuvable")
-        }
+    const car = await carModel.create({
+      model,
+      prix: Number(prix),
+      description,
+      kilometrage: Number(kilometrage),
+      fuel,
+      Annee: Number(Annee),
+      boite,
+      etat,
+      Car_image: imageNames,
+      owner: userId,
+    });
 
-            await carModel.findByIdAndUpdate(carId,{
-            $unset: {owner : 1  },
-        })
+    await userModel.findByIdAndUpdate(userId, {
+      $push: { cars: car._id }
+    });
 
-            await userMdel.findByIdAndUpdate(userId,{
-                $pull: {cars : carId},
-    })
-      
-        res.status(200).json('desaffected');
-    } catch (error) {
-        res.status(500).json({message : error.message});
+    res.status(201).json({ message: 'Voiture ajoutée avec succès', car });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.UpdateCar = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { model, prix, description, kilometrage, fuel, Annee } = req.body;
+    const filenames = req.files?.map(f => f.filename) || [];
+
+    const carById = await carModel.findById(id);
+    if (!carById) {
+      throw new Error("Voiture introuvable");
     }
-}
+
+    if (!model || !prix || !description || !kilometrage || !fuel || !Annee) {
+      throw new Error("Erreur dans les données envoyées");
+    }
+
+    const updated = await carModel.findByIdAndUpdate(id, {
+      $set: { model, prix, description, kilometrage, fuel, Annee },
+    }, { new: true });
+
+    res.status(200).json(updated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.affect = async (req, res) => {
+  try {
+    const { userId, carId } = req.body;
+
+    const carById = await carModel.findById(carId);
+    if (!carById) {
+      throw new Error("Voiture introuvable");
+    }
+
+    const checkIfUserExists = await userModel.findById(userId);
+    if (!checkIfUserExists) {
+      throw new Error("Utilisateur introuvable");
+    }
+
+    await carModel.findByIdAndUpdate(carId, {
+      $set: { owner: userId },
+    });
+
+    await userModel.findByIdAndUpdate(userId, {
+      $push: { cars: carId },
+    });
+
+    res.status(200).json('affected');
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.desaffect = async (req, res) => {
+  try {
+    const { userId, carId } = req.body;
+
+    const carById = await carModel.findById(carId);
+    if (!carById) {
+      throw new Error("Voiture introuvable");
+    }
+
+    const checkIfUserExists = await userModel.findById(userId);
+    if (!checkIfUserExists) {
+      throw new Error("Utilisateur introuvable");
+    }
+
+    await carModel.findByIdAndUpdate(carId, {
+      $unset: { owner: 1 },
+    });
+
+    await userModel.findByIdAndUpdate(userId, {
+      $pull: { cars: carId },
+    });
+
+    res.status(200).json('desaffected');
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
