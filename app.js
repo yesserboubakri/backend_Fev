@@ -9,6 +9,7 @@ const cors = require("cors");
 const { connectToMongodb } = require('./config/db.js');
 const http = require('http');
 
+
 // Routers
 var usersRouter = require('./routes/usersRouter.js');
 var osRouter = require('./routes/osRouter.js');
@@ -26,10 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cors({
-    origin:"http://localhost:3000",
-    methods:"GET,POST,PUT,Delete",
-  }))
+app.use(cors())
   
 // Add session middleware BEFORE the routes
 app.use(session({   //cobfig session

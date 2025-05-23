@@ -57,12 +57,12 @@ module.exports.AddCar = async (req, res) => {
       Annee,
       boite,
       etat,
-      userId,
+      owner,
     } = req.body;
 
     const files = req.files;
 
-    if (!model || !prix || !description || !kilometrage || !fuel || !Annee || !boite || !etat || !userId) {
+    if (!model || !prix || !description || !kilometrage || !fuel || !Annee || !boite || !etat || !owner) {
       return res.status(400).json({ message: "Données du formulaire manquantes." });
     }
 
@@ -82,10 +82,10 @@ module.exports.AddCar = async (req, res) => {
       boite,
       etat,
       Car_image: imageNames,
-      owner: userId,
+      owner: owner,
     });
 
-    await userModel.findByIdAndUpdate(userId, {
+    await userModel.findByIdAndUpdate(owner, {
       $push: { cars: car._id }
     });
 
@@ -94,6 +94,7 @@ module.exports.AddCar = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 module.exports.UpdateCar = async (req, res) => {
   try {
@@ -171,6 +172,73 @@ module.exports.desaffect = async (req, res) => {
     });
 
     res.status(200).json('desaffected');
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.getCarCountPerUser = async (req, res) => {
+  try {
+    const aggregation = await carModel.aggregate([
+      {
+        $group: {
+          _id: "$owner",
+          carCount: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "ownerInfo"
+        }
+      },
+      {
+        $unwind: "$ownerInfo"
+      },
+      {
+        $project: {
+          username: "$ownerInfo.username",
+          carCount: 1
+        }
+      }
+    ]);
+
+    res.status(200).json(aggregation);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+module.exports.getCarCountByDay = async (req, res) => {
+  try {
+    const aggregation = await carModel.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            $lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+          }
+        }
+      },
+      {
+        $group: {
+          _id: { $dayOfMonth: "$createdAt" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { "_id": 1 },
+      },
+      {
+        $project: {
+          day: "$_id",
+          count: 1,
+          _id: 0,
+        },
+      },
+    ]);
+    res.status(200).json(aggregation);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

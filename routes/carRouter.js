@@ -6,6 +6,8 @@ const upload = require('../middlewares/uploadFile');
 /* GET home page. */
 router.get('/getAllCars', carController.getAllCars);
 router.get('/getCarById/:id', carController.getCarById);
+router.get('/count-per-user', carController.getCarCountPerUser);
+router.get('/getCarCountByDay', carController.getCarCountByDay);
 
 
 router.delete('/deleteCarById/:id', carController.deleteCarById);

@@ -16,6 +16,7 @@ module.exports.addUserClient = async (req, res) => {
       email,
       password,
       age,
+      user_image : 'user.jpg',
       role: role || 'client'
     });
     res.status(200).json({ user });
@@ -27,14 +28,18 @@ module.exports.addUserClient = async (req, res) => {
 
 module.exports.addUserClientWithImg = async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
-    const { filename } = req.file;
+    const { username, email, password, age, role } = req.body;
 
+    // تحقق إذا كان المستخدم قد أرسل صورة
+    const userImage = req.file ? req.file.filename : 'user.jpg';  // إذا لم تكن الصورة موجودة، سيتم تعيين 'user.jpg'
+
+    // إنشاء مستخدم جديد في قاعدة البيانات
     const user = await userModel.create({
       username,
       email,
       password,
-      user_image: filename,
+      age,
+      user_image: userImage,  // تعيين الصورة الافتراضية إذا لم توجد صورة
       role: role || 'client'
     });
 
@@ -43,6 +48,7 @@ module.exports.addUserClientWithImg = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 
 module.exports.addUserAdmin = async (req, res) => {
@@ -219,6 +225,39 @@ module.exports.getAllAdmin = async (req, res) => {
   try {
     const userListe = await userModel.find({ role: "admin" });
     res.status(200).json({ userListe });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+module.exports.getUserCountByDay = async (req, res) => {
+  try {
+    const aggregation = await userModel.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            $lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+          }
+        }
+      },
+      {
+        $group: {
+          _id: { $dayOfMonth: "$createdAt" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { "_id": 1 },
+      },
+      {
+        $project: {
+          day: "$_id",
+          count: 1,
+          _id: 0,
+        },
+      },
+    ]);
+    res.status(200).json(aggregation);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

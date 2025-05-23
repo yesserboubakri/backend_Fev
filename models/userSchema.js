@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema(
     cars: [{ type: mongoose.Schema.Types.ObjectId, ref: "Car" }],
     payments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Payment' }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comments' }],
+    messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
     etat: Boolean,
     ban: Boolean,
   },
@@ -46,7 +47,7 @@ userSchema.pre("save", async function (next) {
     if (user.isNew) {
       user.etat = false;
       user.ban = true;
-      user.count = 1; 
+      user.count = 1;
     }
 
     next();
@@ -62,28 +63,28 @@ userSchema.post("save", async function (req, res, next) {
 });
 
 userSchema.statics.login = async function (email, password) {
-    //console.log(email, password);
-    const user = await this.findOne({ email });
-    //console.log(user)
-    if (user) {
-      const auth = await bcrypt.compare(password,user.password);
-      //console.log(auth)
-      if (auth) {
-        // if (user.etat === true) {
-        //   if (user.ban === false) {
-            return user;
-        //   } else {
-        //     throw new Error("ban");
-        //   }
-        // } else {
-        //   throw new Error("compte desactive ");
-        // }
-      } else {
-        throw new Error("password invalid"); 
-      }
+  //console.log(email, password);
+  const user = await this.findOne({ email });
+  //console.log(user)
+  if (user) {
+    const auth = await bcrypt.compare(password, user.password);
+    //console.log(auth)
+    if (auth) {
+      // if (user.etat === true) {
+      //   if (user.ban === false) {
+      return user;
+      //   } else {
+      //     throw new Error("ban");
+      //   }
+      // } else {
+      //   throw new Error("compte desactive ");
+      // }
     } else {
-      throw new Error("email not found");
+      throw new Error("password invalid");
     }
+  } else {
+    throw new Error("email not found");
+  }
 };
 
 const User = mongoose.model("User", userSchema);
